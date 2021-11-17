@@ -130,8 +130,8 @@ plt.savefig("./resources/ten_most_present_trees.png")
 species_group = data.assign(dummy=1).groupby(['dummy', 'espece']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 species_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
-plt.title('10 most present species in Paris')
-plt.savefig("./resources/top_ten_species.png")
+plt.title('Species percentage in Paris')
+plt.savefig("./resources/species_percentage.png")
 plt.show()
 
 # Tree number percentage per 'arrondissement'
@@ -139,14 +139,14 @@ arron_group = data.assign(dummy=1).groupby(['dummy', 'arrondissement']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 arron_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
 plt.title('Tree number percentage per arrondissement')
-plt.savefig("./resources/top_ten_arrondissement.png")
+plt.savefig("./resources/arrondissement_percentage.png")
 plt.show()
 
 # Tree number percentage per 'lieu'
 lieu_group = data.assign(dummy=1).groupby(['dummy', 'lieu']).size().\
-    groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False).head(10)
-lieu_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
-plt.title('Tree number percentage per lieu')
+    groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
+lieu_group.head(10).plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+plt.title('Top ten most green lieu')
 plt.savefig("./resources/top_ten_lieu.png")
 plt.show()
 
