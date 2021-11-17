@@ -131,6 +131,7 @@ species_group = data.assign(dummy=1).groupby(['dummy', 'espece']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 species_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
 plt.title('Species percentage in Paris')
+plt.ylabel('')
 plt.savefig("./resources/species_percentage.png")
 plt.show()
 
@@ -139,6 +140,7 @@ arron_group = data.assign(dummy=1).groupby(['dummy', 'arrondissement']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 arron_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
 plt.title('Tree number percentage per arrondissement')
+plt.ylabel('')
 plt.savefig("./resources/arrondissement_percentage.png")
 plt.show()
 
@@ -147,7 +149,25 @@ lieu_group = data.assign(dummy=1).groupby(['dummy', 'lieu']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 lieu_group.head(10).plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
 plt.title('Top ten most green lieu')
+plt.ylabel('')
 plt.savefig("./resources/top_ten_lieu.png")
+plt.show()
+
+# Height average per arrondissement
+hauteur_mean = data.groupby(['arrondissement'])['hauteur_m'].mean()
+hauteur_mean.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+plt.title('Average height per arrondissement in meters')
+plt.ylabel('')
+plt.savefig("./resources/average_height_per_arrondissement.png")
+plt.show()
+
+
+# Circumference average per arrondissement
+circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean()
+circum_mean.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+plt.title('Average circumference per arrondissement in meters')
+plt.ylabel('')
+plt.savefig("./resources/average_circumference_per_arrondissement.png")
 plt.show()
 
 """
