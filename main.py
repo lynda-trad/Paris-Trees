@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
 
 
 # Removing unwanted columns from data frame
@@ -15,6 +14,10 @@ def cleaningColumns(dataF):
     dataF.drop('geo_point_2d_b', axis=1, inplace=True)
     dataF.drop('stade_developpement', axis=1, inplace=True)
     dataF.drop('remarquable', axis=1, inplace=True)
+
+    total_trees = getTreeNumber(data)
+    nan = dataF.isnull().sum()
+
     return dataF
 
 
@@ -85,7 +88,7 @@ print("Species categories:", total_species)
 print("species grp size:\n", species_grp.size(), '\n')
 
 # Top 10 most present species in Paris
-species_group = data.assign(dummy=1).groupby(['dummy', 'espece']).size().\
+species_group = data.assign(dummy=1).groupby(['dummy', 'espece']).size(). \
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 species_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.2f%%')
 plt.title('Species percentage in Paris')
@@ -94,7 +97,7 @@ plt.savefig("./resources/species_percentage.png")
 plt.show()
 
 # Tree number percentage per 'arrondissement'
-arron_group = data.assign(dummy=1).groupby(['dummy', 'arrondissement']).size().\
+arron_group = data.assign(dummy=1).groupby(['dummy', 'arrondissement']).size(). \
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 arron_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.2f%%')
 plt.title('Tree number percentage per arrondissement')
@@ -103,7 +106,7 @@ plt.savefig("./resources/arrondissement_percentage.png")
 plt.show()
 
 # Tree number percentage per 'lieu'
-lieu_group = data.assign(dummy=1).groupby(['dummy', 'lieu']).size().\
+lieu_group = data.assign(dummy=1).groupby(['dummy', 'lieu']).size(). \
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
 lieu_group.head(10).plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.2f%%')
 plt.title('Top ten most green lieu')
@@ -112,18 +115,21 @@ plt.savefig("./resources/top_ten_lieu.png")
 plt.show()
 
 # Height average per arrondissement
-hauteur_mean = data.groupby(['arrondissement'])['hauteur_m'].mean().reset_index().plot(x='arrondissement', y='hauteur_m',
-                                                                                       kind='bar', subplots=True, figsize=(15, 10))
+hauteur_mean = data.groupby(['arrondissement'])['hauteur_m'].mean().reset_index().plot(x='arrondissement',
+                                                                                       y='hauteur_m',
+                                                                                       kind='bar', subplots=True,
+                                                                                       figsize=(15, 10))
 plt.title('Average height per arrondissement in meters')
 plt.ylabel('')
 plt.savefig("./resources/average_height_per_arrondissement.png")
 plt.show()
 
 # Circumference average per arrondissement
-circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean().reset_index().plot(x='arrondissement', y='circonference_cm',
-                                                                                             kind='bar', subplots=True, figsize=(15, 10))
+circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean().reset_index().plot(x='arrondissement',
+                                                                                             y='circonference_cm',
+                                                                                             kind='bar', subplots=True,
+                                                                                             figsize=(15, 10))
 plt.title('Average circumference per arrondissement in centimeters')
 plt.ylabel('')
 plt.savefig("./resources/average_circumference_per_arrondissement.png")
 plt.show()
-
