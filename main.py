@@ -64,13 +64,6 @@ row_count = getTreeNumber(data)
 data.to_csv('./resources/cleanedDF.csv', encoding='utf-8', sep=';')  # index = False to remove previous index column
 data.reset_index(drop=True)
 
-"""
-# Testing id 
-chene = data.loc[data['id'] == '99874']
-print(data['id'].values[16])
-print(data['libelle_francais'].values[16])
-"""
-
 # Get all rows with judee as libelle_francais
 index = data.index
 new_val = data["libelle_francais"] == 'Arbre de Judée'
@@ -79,57 +72,22 @@ judee_rows = b.tolist()
 print("Get only rows with Arbre de Judée:", judee_rows)
 print('\n', data["libelle_francais"][b[0]])
 
-
 # Groupby libelle_francais
 categories_grp = data.groupby('libelle_francais')
 total_categories = len(categories_grp)
 print("Tree categories:\n", total_categories, '\n')
 print("libelle_francais grp size:\n", categories_grp.size(), '\n')
-"""
-for item, itemdf in categories_grp:
-    print(item)
-    print(itemdf)
-"""
 
 # Groupby species
 species_grp = data.groupby('espece')
 total_species = len(species_grp)
 print("Species categories:", total_species)
 print("species grp size:\n", species_grp.size(), '\n')
-"""
-for item, itemdf in categories_grp:
-    print(item)
-    print(itemdf)
-"""
-
-"""
-# PREVIOUS PLOT FOR MOST PRESENT SPECIES
-head = species_groups.head(10)
-
-# head.plot(kind='line', x='flower species', y='number', ax=ax)
-
-data.assign(dummy=1).groupby(['dummy', 'espece']).size().groupby(level=0).apply(lambda x: 100 * x / x.sum())\
-    .to_frame().unstack().plot(kind='bar', stacked=True, legend=False)
-
-plt.title('Top 10 most present tree species')
-plt.xlabel('species')
-plt.xticks([])
-
-current_handles, _ = plt.gca().get_legend_handles_labels()
-reversed_handles = reversed(current_handles)
-correct_labels = reversed(data['espece'].unique())
-
-plt.legend(reversed_handles, correct_labels, loc='lower right')
-
-plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter())
-
-plt.savefig("./resources/ten_most_present_trees.png")
-"""
 
 # Top 10 most present species in Paris
 species_group = data.assign(dummy=1).groupby(['dummy', 'espece']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
-species_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+species_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.2f%%')
 plt.title('Species percentage in Paris')
 plt.ylabel('')
 plt.savefig("./resources/species_percentage.png")
@@ -138,7 +96,7 @@ plt.show()
 # Tree number percentage per 'arrondissement'
 arron_group = data.assign(dummy=1).groupby(['dummy', 'arrondissement']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
-arron_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+arron_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.2f%%')
 plt.title('Tree number percentage per arrondissement')
 plt.ylabel('')
 plt.savefig("./resources/arrondissement_percentage.png")
@@ -147,33 +105,25 @@ plt.show()
 # Tree number percentage per 'lieu'
 lieu_group = data.assign(dummy=1).groupby(['dummy', 'lieu']).size().\
     groupby(level=0).apply(lambda x: 100 * x / x.sum()).sort_values(ascending=False)
-lieu_group.head(10).plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+lieu_group.head(10).plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.2f%%')
 plt.title('Top ten most green lieu')
 plt.ylabel('')
 plt.savefig("./resources/top_ten_lieu.png")
 plt.show()
 
 # Height average per arrondissement
-hauteur_mean = data.groupby(['arrondissement'])['hauteur_m'].mean()
-hauteur_mean.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
+hauteur_mean = data.groupby(['arrondissement'])['hauteur_m'].mean().reset_index().plot(x='arrondissement', y='hauteur_m',
+                                                                                       kind='bar', subplots=True, figsize=(15, 10))
 plt.title('Average height per arrondissement in meters')
 plt.ylabel('')
 plt.savefig("./resources/average_height_per_arrondissement.png")
 plt.show()
 
-
 # Circumference average per arrondissement
-circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean()
-circum_mean.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
-plt.title('Average circumference per arrondissement in meters')
+circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean().reset_index().plot(x='arrondissement', y='circonference_cm',
+                                                                                             kind='bar', subplots=True, figsize=(15, 10))
+plt.title('Average circumference per arrondissement in centimeters')
 plt.ylabel('')
 plt.savefig("./resources/average_circumference_per_arrondissement.png")
 plt.show()
 
-"""
-IDEAS :
-tree number per 'espece'
-tree number per 'arrondissements' 
-tree number per 'lieu'
-'hauteur' & 'circonference' medium per 'arrondissement'
-"""
