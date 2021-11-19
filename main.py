@@ -1,7 +1,7 @@
 import folium as folium
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import missingno as msno
 
 # Removing unwanted columns from data frame
 def cleaningColumns(dataF):
