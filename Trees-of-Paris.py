@@ -102,17 +102,6 @@ height_boxplot_after = px.box(data,
                               title='Height boxplot after cleanup',
                               log_y=True)
 
-# Species distribution in Paris
-
-species_group = data.groupby(['espece']).size().sort_values(ascending=False).reset_index(name='count')
-
-species_distrib_fig = px.histogram(species_group,
-                                   x='espece',
-                                   y='count',
-                                   labels={'espece': "Species",
-                                           "sum of count": "Total number of trees"},
-                                   title='Species distribution in Paris')
-
 # Species distribution in each district
 
 species_district_df = data.groupby(['arrondissement', 'espece'], dropna=True).size().sort_values(ascending=False).reset_index(name="count")
@@ -345,12 +334,6 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='height_boxplot_after',
         figure=height_boxplot_after
-    ),
-
-    # Species distribution in Paris
-    dcc.Graph(
-        id='species_distrib_fig',
-        figure=species_distrib_fig
     ),
 
     # Species distribution in each district
