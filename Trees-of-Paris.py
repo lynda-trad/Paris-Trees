@@ -18,7 +18,7 @@ data = pd.read_csv(filename, encoding='utf-8', sep=';')
 data
 
 
-### Useful values
+# Useful values
 
 # Returns tree number
 def getTreeNumber(dataF):
@@ -42,9 +42,9 @@ columns = getColumns(data)
 row_count = getTreeNumber(data)
 PARIS_LOCATION = (48.856614, 2.3522219)
 
-## Boxplots
+# Boxplots
 
-### Finding maximum circumference and height
+# Finding maximum circumference and height
 
 circum_boxplot_before = px.box(data,
                                y='circonference_cm',
@@ -58,12 +58,12 @@ height_boxplot_before = px.box(data,
                                title='Height boxplot before cleanup',
                                log_y=True)
 
-### Showing how much data is missing on each column
+# Showing how much data is missing on each column
 
 msno_fig = px.imshow(data.isnull(), title="Missing values in database")
 
 
-## Data cleanup
+# Data cleanup
 
 # Removing unwanted columns from data frame
 def cleaningColumns(dataF):
@@ -88,7 +88,7 @@ data = cleaningColumns(data)
 data = cleaningRows(data)
 data = data.drop_duplicates()
 
-### Boxplots after cleanup
+# Boxplots after cleanup
 
 circum_boxplot_after = px.box(data,
                               y='circonference_cm',
@@ -102,73 +102,37 @@ height_boxplot_after = px.box(data,
                               title='Height boxplot after cleanup',
                               log_y=True)
 
-### Species distribution in Paris
+# Species distribution in Paris
 
 species_group = data.groupby(['espece']).size().sort_values(ascending=False).reset_index(name='count')
 
 species_distrib_fig = px.histogram(species_group,
                                    x='espece',
                                    y='count',
-                                   labels={'espece':"Species",
-                                           "sum of count":"Total number of trees"},
+                                   labels={'espece': "Species",
+                                           "sum of count": "Total number of trees"},
                                    title='Species distribution in Paris')
 
-"""
+# Species distribution in each district
 
-### Ten most present species
+species_district_df = data.groupby(['arrondissement', 'espece'], dropna=True).size().sort_values(ascending=False).reset_index(name="count")
 
-top_species_df = species_group.head(10).reset_index(name='count')
-top_species_list = []
-species_to_delete = []
+species_district_fig = px.bar(species_district_df,
+                              x="count",
+                              y="arrondissement",
+                              color='espece',
+                              orientation='h',
+                              barmode='stack',
+                              title="Species distribution in each district",
+                              labels={'arrondissement': "Districts",
+                                      'espece': "species",
+                                      'count': "Number of trees"
+                                      }
+                              )
 
-print("Ten most present species :")
-for index, row in top_species_df.iterrows():
-    specie = top_species_df['espece'][index]
-    top_species_list.append(specie)
-    print(specie)
+# Tree number percentage per district on the map
 
-for index, val in species_group.iteritems():
-    if index not in top_species_list:
-        species_to_delete.append(index)
-
-# ## Ten most present species percentage for each district
-
-"""
-species_district_df = data.groupby(['arrondissement', 'espece'], dropna=True).size().reset_index(name="count")
-"""
-# Removing species which aren't in top_species_list
-for specie in species_to_delete:
-    species_district_df.drop(species_district_df.index[(species_district_df["espece"] == specie)], axis=0, inplace=True)
-species_district_df
-"""
-
-# reshape the dataframe
-species_district_dfpivot = species_district_df.pivot(index=['arrondissement'], columns=['espece'], values='count')
-
-# plot stacked bars
-species_district_dfpivot.plot(kind='barh', stacked=True, rot=0, figsize=(15, 10),
-                              xlabel='Districts', ylabel='Species frequency')
-plt.legend(title="Top 10 most present species in all of Paris")
-# plt.show()
-
-
-height_circum_mean = data.groupby(['arrondissement', 'stade_developpement']).size().reset_index(name="count")
-dev_distrib_per_district = px.bar(height_circum_mean,
-                                  x="count",
-                                  y="arrondissement",
-                                  color='stade_developpement',
-                                  orientation='h',
-                                  title="Development stage distribution among districts",
-                                  labels={'arrondissement': "Districts",
-                                          'stade_developpement': "Development stage",
-                                          'count' :"Number of trees"
-                                          }
-                                  )
-
-
-### Tree number percentage per district on the map
-
-### Districts' geolocalisation
+# Districts' geolocalisation
 
 first_of_each_district_df = data.groupby(['arrondissement']).nth(0).reset_index()
 first_of_each_district_df.drop(
@@ -189,8 +153,8 @@ for i in range(len(first_of_each_district_df)):
 surface_dict = {'BOIS DE BOULOGNE': 8.46,
                 'BOIS DE VINCENNES': 9.95,
                 'HAUTS-DE-SEINE': 176,
-                'PARIS 10E ARRDT'	: 2.89,
-                'PARIS 11E ARRDT'	 : 3.67,
+                'PARIS 10E ARRDT': 2.89,
+                'PARIS 11E ARRDT'	: 3.67,
                 'PARIS 12E ARRDT'	 : 16.32,
                 'PARIS 13E ARRDT'	 : 7.15,
                 'PARIS 14E ARRDT'	 : 5.64,
@@ -256,7 +220,6 @@ h_c_stage_scatter_fig = px.scatter(scatter,
                                    title="Height, circumference and development stage scatterplot"
                                    )
 
-
 ### Trees' height and circumference and their development stage
 # NOT SURE
 """
@@ -279,7 +242,7 @@ h_c_stage_fig = px.line(scatter,
                         title="Trees\' height and circumference and their development stage",
                         labels={'stade_developpement': "Development stage",
                                 'hauteur_m': "Height in meters",
-                                'circonference_cm' :"Circumference in centimeters"
+                                'circonference_cm': "Circumference in centimeters"
                                 }
                         )
 
@@ -293,9 +256,9 @@ average_h_c_per_stage = px.line(sub,
                                 title="Height and circumference average per development stage",
                                 labels={'stade_developpement': "Development stage",
                                         'hauteur_m': "Height in meters",
-                                        'circonference_cm' :"Circumference in centimeters",
-                                        'value' :'Value',
-                                        'variable' :'Variable'
+                                        'circonference_cm': "Circumference in centimeters",
+                                        'value': 'Value',
+                                        'variable': 'Variable'
                                         }
                                 )
 
@@ -310,7 +273,7 @@ dev_distrib_per_district = px.bar(height_circum_mean,
                                   title="Development stage distribution among districts",
                                   labels={'arrondissement': "Districts",
                                           'stade_developpement': "Development stage",
-                                          'count' :"Number of trees"
+                                          'count': "Number of trees"
                                           }
                                   )
 
@@ -322,8 +285,8 @@ height_mean_fig = px.bar(height_mean,
                          x='arrondissement',
                          y='hauteur_m',
                          title="Average height in m per district",
-                         labels={'arrondissement' :"Districts",
-                                 'hauteur_m' :"Average height in meters"
+                         labels={'arrondissement': "Districts",
+                                 'hauteur_m': "Average height in meters"
                                  }
                          )
 
@@ -336,8 +299,8 @@ circum_mean_fig = px.bar(circum_mean,
                          x='arrondissement',
                          y='circonference_cm',
                          title="Average circumference in cm per district",
-                         labels={'arrondissement' :"Districts",
-                                 'circonference_cm' :"Average circumference in centimeters"
+                         labels={'arrondissement': "Districts",
+                                 'circonference_cm': "Average circumference in centimeters"
                                  }
                          )
 
@@ -390,9 +353,11 @@ app.layout = html.Div(children=[
         figure=species_distrib_fig
     ),
 
-    # under
-
-    # above
+    # Species distribution in each district
+    dcc.Graph(
+        id='species_district_fig',
+        figure=species_district_fig
+    ),
 
     # Paris map
     html.Div(children='''
