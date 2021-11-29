@@ -17,7 +17,7 @@ filename = "./resources/p2-arbres-fr.csv"
 data = pd.read_csv(filename, encoding='utf-8', sep=';')
 data
 
-"""
+
 ### Useful values
 
 # Returns tree number
@@ -46,29 +46,24 @@ PARIS_LOCATION = (48.856614, 2.3522219)
 
 ### Finding maximum circumference and height
 
-circum_boxplot = sns.boxplot(y=data['circonference_cm'])
-circum_boxplot.set_yscale('log')
-circum_boxplot.set_title('Circumference boxplot')
-circum_boxplot.set_ylabel('Cicumference in centimeters')
-plt.show()
+circum_boxplot_before = px.box(data,
+                               y='circonference_cm',
+                               labels={'circonference_cm': 'Circumference in centimeters'},
+                               title='Circumference boxplot before cleanup',
+                               log_y=True)
 
-height_boxplot = sns.boxplot(y=data["hauteur_m"])
-height_boxplot.set_yscale('log')
-height_boxplot.set_title('Height boxplot')
-height_boxplot.set_ylabel('Height in meters')
-plt.show()
+height_boxplot_before = px.box(data,
+                               y='hauteur_m',
+                               labels={'hauteur_m': 'Height in meters'},
+                               title='Height boxplot before cleanup',
+                               log_y=True)
 
 ### Showing how much data is missing on each column
 
-# missing_values = msno.bar(data)
-sns.heatmap(data.isnull(), cbar=False)
-plt.show()
+msno_fig = px.imshow(data.isnull(), title="Missing values in database")
 
 
 ## Data cleanup
-
-# We remove columns we won't be using for our study, either because they aren't useful or because they aren't filled with enough data.
-# We also remove lines that weren't filled correctly, for example if the tree circumference or height is equal to 0, or if the tree is taller or wider than the biggest tree known in Paris.
 
 # Removing unwanted columns from data frame
 def cleaningColumns(dataF):
@@ -101,18 +96,18 @@ data.reset_index(drop=True)
 
 ### Boxplots after cleanup
 
-circum_boxplot = sns.boxplot(y=data['circonference_cm'])
-circum_boxplot.set_yscale('log')
-circum_boxplot.set_title('Circumference boxplot')
-circum_boxplot.set_ylabel('Cicumference in centimeters')
-plt.show()
+circum_boxplot_after = px.box(data,
+                              y='circonference_cm',
+                              labels={'circonference_cm': 'Circumference in centimeters'},
+                              title='Circumference boxplot after cleanup',
+                              log_y=True)
 
-height_boxplot = sns.boxplot(y=data["hauteur_m"])
-height_boxplot.set_yscale('log')
-height_boxplot.set_title('Height boxplot')
-height_boxplot.set_ylabel('Height in meters')
-plt.show()
-
+height_boxplot_after = px.box(data,
+                              y='hauteur_m',
+                              labels={'hauteur_m': 'Height in meters'},
+                              title='Height boxplot after cleanup',
+                              log_y=True)
+"""
 ## Work on the data
 
 ### Species percentage in Paris
@@ -264,14 +259,13 @@ plt.title('Ten most green places')
 plt.ylabel('')
 plt.show()
 
-# # Height, circumference and development stage scatterplot
+"""
 
-# In[89]:
+## Height, circumference and development stage scatterplot
 
-
-scatter = data.groupby(['stade_developpement', 'hauteur_m', 'circonference_cm'], dropna=True)
+scatter = data.groupby(['stade_developpement', 'hauteur_m', 'circonference_cm'], dropna=True).size().reset_index()
 sns.set(rc={"figure.figsize": (15, 10)})
-ax = sns.scatterplot(data=scatter.size(),
+ax = sns.scatterplot(data=scatter,
                      x='hauteur_m',
                      y='circonference_cm',
                      hue='stade_developpement')
@@ -279,10 +273,22 @@ ax.set(xlabel='Height in meters',
        ylabel='Circumference in centimeters',
        title='Height, circumference and development stage')
 plt.legend(loc='upper right', title='Development stage')
-plt.show()
+# plt.show()
+
+h_c_stage_scatter_fig = px.scatter(scatter,
+                                   x="hauteur_m",
+                                   y="circonference_cm",
+                                   color='stade_developpement',
+                                   labels={'stade_developpement': "Development stage",
+                                           'hauteur_m': "Height in meters",
+                                           'circonference_cm':"Circumference in centimeters"
+                                           }
+                                   )
+
 
 ### Trees' height and circumference and their development stage
-
+# NOT SURE
+"""
 ax = sns.lineplot(data=scatter.size(),
                   x='hauteur_m',
                   y='circonference_cm',
@@ -294,18 +300,49 @@ plt.legend(loc='upper right', title='Development stage')
 plt.show()
 
 """
+
+h_c_stage_fig = px.line(scatter,
+                        x='hauteur_m',
+                        y='circonference_cm',
+                        color='stade_developpement',
+                        title="Trees\' height and circumference and their development stage",
+                        labels={'stade_developpement': "Development stage",
+                                'hauteur_m': "Height in meters",
+                                'circonference_cm':"Circumference in centimeters"
+                                }
+                        )
+
 ### Height and circumference average per development stage
 
 sub = data.groupby(['stade_developpement'], dropna=True)['hauteur_m', 'circonference_cm'].mean().reset_index()
-h_cir_perStage_fig = px.line(sub,
-                             x='stade_developpement',
-                             y=['hauteur_m', 'circonference_cm'])
+# sub['hauteur_cm'] = sub['hauteur_m'] * 100
+print(sub)
+average_h_c_per_stage = px.line(sub,
+                                x='stade_developpement',
+                                y=['hauteur_m', 'circonference_cm'],
+                                title="Height and circumference average per development stage",
+                                labels={'stade_developpement': "Development stage",
+                                        'hauteur_m': "Height in meters",
+                                        'circonference_cm':"Circumference in centimeters",
+                                        'value':'Value',
+                                        'variable':'Variable'
+                                        }
+                                )
 
 ### Development stage distribution among districts
 
 height_circum_mean = data.groupby(['arrondissement', 'stade_developpement']).size().reset_index(name="count")
-dev_distrib_per_district = px.bar(height_circum_mean, x="count", y="arrondissement", color='stade_developpement',
-                                orientation='h', title="Development stage distribution among districts")
+dev_distrib_per_district = px.bar(height_circum_mean,
+                                  x="count",
+                                  y="arrondissement",
+                                  color='stade_developpement',
+                                  orientation='h',
+                                  title="Development stage distribution among districts",
+                                  labels={'arrondissement': "Districts",
+                                          'stade_developpement': "Development stage",
+                                          'count':"Number of trees"
+                                          }
+                                  )
 
 ### Average height per district
 
@@ -314,7 +351,10 @@ height_mean = data.groupby(['arrondissement'])['hauteur_m'].mean().reset_index()
 height_mean_fig = px.bar(height_mean,
                          x='arrondissement',
                          y='hauteur_m',
-                         title="Average height in m per district"
+                         title="Average height in m per district",
+                         labels={'arrondissement':"Districts",
+                                 'hauteur_m':"Average height in meters"
+                                 }
                          )
 
 ### Average circumference per district
@@ -325,45 +365,87 @@ circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean().reset_
 circum_mean_fig = px.bar(circum_mean,
                          x='arrondissement',
                          y='circonference_cm',
-                         title="Average circumference in cm per district"
+                         title="Average circumference in cm per district",
+                         labels={'arrondissement':"Districts",
+                                 'circonference_cm':"Average circumference in centimeters"
+                                 }
                          )
+
+#########################################
 
 app = dash.Dash(__name__)
 
 app.layout = html.Div(children=[
     html.H1(children='Trees of Paris'),
 
-    html.Div(children='''
-        Height and circumference average per development stage
-    '''),
-
+    # Boxplots before cleanup
     dcc.Graph(
-        id='h_cir_perStage_fig',
-        figure=h_cir_perStage_fig
+        id='circum_boxplot_before',
+        figure=circum_boxplot_before
+    ),
+    dcc.Graph(
+        id='height_boxplot_before',
+        figure=height_boxplot_before
+    ),
+
+    # Missing values in dataframe
+    dcc.Graph(
+        id='msno_fig',
+        figure=msno_fig
     ),
 
     html.Div(children='''
-    Development stage distribution among districts
+    We remove columns we won't be using for our study, either because they aren't useful or 
+    because they aren't filled with enough data.
     '''),
 
+    html.Div(children='''
+    We also remove lines that weren't filled correctly, for example if the tree circumference or 
+    height is equal to 0, or if the tree is taller or wider than the biggest tree known in Paris.
+    '''),
+
+    # Boxplots after cleanup
+    dcc.Graph(
+        id='circum_boxplot_after',
+        figure=circum_boxplot_after
+    ),
+    dcc.Graph(
+        id='height_boxplot_after',
+        figure=height_boxplot_after
+    ),
+
+    # Height, circumference and development stage scatterplot
+    dcc.Graph(
+        id='h_c_stage_scatter_fig',
+        figure=h_c_stage_scatter_fig
+    ),
+
+    # Trees' height and circumference and their development stage
+    # NOT SURE
+    dcc.Graph(
+        id='h_c_stage_fig',
+        figure=h_c_stage_fig
+    ),
+
+    # Height and circumference average per development stage
+    dcc.Graph(
+        id='average_h_c_per_stage',
+        figure=average_h_c_per_stage
+    ),
+
+    # Development stage distribution among districts
     dcc.Graph(
         id='dev_distrib_per_district',
         figure=dev_distrib_per_district
     ),
 
-    html.Div(children='''
-    Average height per district
-    '''),
-
+    # Average height per district
     dcc.Graph(
         id='height_mean',
         figure=height_mean_fig
     ),
 
-    html.Div(children='''
-    Average circumference per district
-    '''),
-
+    # Average circumference per district
     dcc.Graph(
         id='circum_mean',
         figure=circum_mean_fig
