@@ -246,34 +246,10 @@ for index, value in numb_per_district.items():
 # Printing
 m
 
-# ## Tree number percentage per place
-
-# In[88]:
-
-
-# Tree number percentage per place
-place_group = data.groupby(['lieu']).size().sort_values(ascending=False)
-place_group.head(10).plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%.0f%%')
-
-plt.title('Ten most green places')
-plt.ylabel('')
-plt.show()
-
 """
-
 ## Height, circumference and development stage scatterplot
 
 scatter = data.groupby(['stade_developpement', 'hauteur_m', 'circonference_cm'], dropna=True).size().reset_index()
-sns.set(rc={"figure.figsize": (15, 10)})
-ax = sns.scatterplot(data=scatter,
-                     x='hauteur_m',
-                     y='circonference_cm',
-                     hue='stade_developpement')
-ax.set(xlabel='Height in meters',
-       ylabel='Circumference in centimeters',
-       title='Height, circumference and development stage')
-plt.legend(loc='upper right', title='Development stage')
-# plt.show()
 
 h_c_stage_scatter_fig = px.scatter(scatter,
                                    x="hauteur_m",
@@ -282,7 +258,8 @@ h_c_stage_scatter_fig = px.scatter(scatter,
                                    labels={'stade_developpement': "Development stage",
                                            'hauteur_m': "Height in meters",
                                            'circonference_cm':"Circumference in centimeters"
-                                           }
+                                           },
+                                   title="Height, circumference and development stage scatterplot"
                                    )
 
 
@@ -413,6 +390,10 @@ app.layout = html.Div(children=[
         id='height_boxplot_after',
         figure=height_boxplot_after
     ),
+    # under
+
+    # above
+
 
     # Height, circumference and development stage scatterplot
     dcc.Graph(
