@@ -102,6 +102,20 @@ height_boxplot_after = px.box(data,
                               title='Height boxplot after cleanup',
                               log_y=True)
 
+# Species distribution in Paris
+
+species_group = data.groupby(['espece']).size().sort_values(ascending=False).reset_index(name='count')
+
+species_distrib_fig = px.histogram(species_group,
+                                   x='espece',
+                                   y='count',
+                                   labels={'espece': "Species",
+                                           'count': "tree count"},
+                                   title='Species distribution in Paris',
+                                   height=700,
+                                   width=1000
+                                   )
+
 # Species distribution in each district
 
 species_district_df = data.groupby(['arrondissement', 'espece'], dropna=True).size().sort_values(ascending=False).reset_index(name="count")
@@ -112,11 +126,11 @@ species_district_fig = px.bar(species_district_df,
                               color='espece',
                               orientation='h',
                               barmode='stack',
-                              title="Species distribution in each district",
                               labels={'arrondissement': "Districts",
                                       'espece': "species",
                                       'count': "Number of trees"
-                                      }
+                                      },
+                              title="Species distribution in each district"
                               )
 
 # Tree number percentage per district on the map
@@ -173,7 +187,7 @@ numb_per_district = data.groupby(['arrondissement']).size()
 
 # Creating map
 paris_map = folium.Map(location=[48.856614, 2.3522219],
-                       width=750,
+                       width=500,
                        height=500,
                        title="Trees\' density and number per district")
 
@@ -210,19 +224,6 @@ h_c_stage_scatter_fig = px.scatter(scatter,
                                    )
 
 ### Trees' height and circumference and their development stage
-# NOT SURE
-"""
-ax = sns.lineplot(data=scatter.size(),
-                  x='hauteur_m',
-                  y='circonference_cm',
-                  hue='stade_developpement')
-ax.set(xlabel='Height in meters',
-       ylabel='Circumference in centimeters',
-       title='Height and circumference per development stage')
-plt.legend(loc='upper right', title='Development stage')
-plt.show()
-
-"""
 
 h_c_stage_fig = px.line(scatter,
                         x='hauteur_m',
@@ -336,6 +337,12 @@ app.layout = html.Div(children=[
         figure=height_boxplot_after
     ),
 
+    # Species distribution in Paris
+    dcc.Graph(
+        id='species_distrib_fig',
+        figure=species_distrib_fig
+    ),
+
     # Species distribution in each district
     dcc.Graph(
         id='species_district_fig',
@@ -395,3 +402,8 @@ app.layout = html.Div(children=[
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
+"""
+    
+    add above species distribution
+"""
