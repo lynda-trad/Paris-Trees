@@ -88,12 +88,6 @@ data = cleaningColumns(data)
 data = cleaningRows(data)
 data = data.drop_duplicates()
 
-## Data after cleanup
-
-# Save cleaned up csv
-data.to_csv('./resources/cleanedDF.csv', encoding='utf-8', sep=';', index=False)
-data.reset_index(drop=True)
-
 ### Boxplots after cleanup
 
 circum_boxplot_after = px.box(data,
@@ -107,17 +101,19 @@ height_boxplot_after = px.box(data,
                               labels={'hauteur_m': 'Height in meters'},
                               title='Height boxplot after cleanup',
                               log_y=True)
+
+### Species distribution in Paris
+
+species_group = data.groupby(['espece']).size().sort_values(ascending=False).reset_index(name='count')
+
+species_distrib_fig = px.histogram(species_group,
+                                   x='espece',
+                                   y='count',
+                                   labels={'espece':"Species",
+                                           "sum of count":"Total number of trees"},
+                                   title='Species distribution in Paris')
+
 """
-## Work on the data
-
-### Species percentage in Paris
-
-# Top 10 most present species in Paris
-species_group = data.groupby(['espece']).size().sort_values(ascending=False)
-species_group.plot(kind='pie', subplots=True, startangle=90, figsize=(15, 10), autopct='%1.1f%%')
-plt.title('Species percentage in Paris')
-plt.ylabel('')
-plt.show()
 
 ### Ten most present species
 
@@ -137,19 +133,14 @@ for index, val in species_group.iteritems():
 
 # ## Ten most present species percentage for each district
 
-# In[83]:
-
-
+"""
 species_district_df = data.groupby(['arrondissement', 'espece'], dropna=True).size().reset_index(name="count")
-
+"""
 # Removing species which aren't in top_species_list
 for specie in species_to_delete:
     species_district_df.drop(species_district_df.index[(species_district_df["espece"] == specie)], axis=0, inplace=True)
-
 species_district_df
-
-# In[84]:
-
+"""
 
 # reshape the dataframe
 species_district_dfpivot = species_district_df.pivot(index=['arrondissement'], columns=['espece'], values='count')
@@ -158,14 +149,26 @@ species_district_dfpivot = species_district_df.pivot(index=['arrondissement'], c
 species_district_dfpivot.plot(kind='barh', stacked=True, rot=0, figsize=(15, 10),
                               xlabel='Districts', ylabel='Species frequency')
 plt.legend(title="Top 10 most present species in all of Paris")
-plt.show()
+# plt.show()
 
-# ## Tree number percentage per district
 
-# ### Districts' geolocalisation
+height_circum_mean = data.groupby(['arrondissement', 'stade_developpement']).size().reset_index(name="count")
+dev_distrib_per_district = px.bar(height_circum_mean,
+                                  x="count",
+                                  y="arrondissement",
+                                  color='stade_developpement',
+                                  orientation='h',
+                                  title="Development stage distribution among districts",
+                                  labels={'arrondissement': "Districts",
+                                          'stade_developpement': "Development stage",
+                                          'count' :"Number of trees"
+                                          }
+                                  )
 
-# In[85]:
 
+### Tree number percentage per district on the map
+
+### Districts' geolocalisation
 
 first_of_each_district_df = data.groupby(['arrondissement']).nth(0).reset_index()
 first_of_each_district_df.drop(
@@ -180,19 +183,13 @@ for i in range(len(first_of_each_district_df)):
     coordinates = (loc_a_index, loc_b_index)
     district_geoloc[index] = coordinates
 
-first_of_each_district_df
-
-# ### District surface
-
-# In[86]:
-
+#### District surface
 
 # Surface in km2
-surface_dict = {
-    'BOIS DE BOULOGNE': 8.46,
-    'BOIS DE VINCENNES': 9.95,
-    'HAUTS-DE-SEINE': 176,
-    'PARIS 10E ARRDT'	: 2.89,
+surface_dict = {'BOIS DE BOULOGNE': 8.46,
+                'BOIS DE VINCENNES': 9.95,
+                'HAUTS-DE-SEINE': 176,
+                'PARIS 10E ARRDT'	: 2.89,
                 'PARIS 11E ARRDT'	 : 3.67,
                 'PARIS 12E ARRDT'	 : 16.32,
                 'PARIS 13E ARRDT'	 : 7.15,
@@ -216,37 +213,34 @@ surface_dict = {
                 'VAL-DE-MARNE'       : 245,
                 }
 
-
-# ### Drawing on map
-
-# In[87]:
-
+### Drawing on map
 
 # Tree number per district
 numb_per_district = data.groupby(['arrondissement']).size()
 
 # Creating map
-m = folium.Map(location=[48.856614, 2.3522219], width=750, height=500)
+paris_map = folium.Map(location=[48.856614, 2.3522219],
+                       width=750,
+                       height=500,
+                       title="Trees\' density and number per district")
 
 # Placing markers for each district on the map
 for index, value in numb_per_district.items():
     if index in district_geoloc:
         localisation = district_geoloc[index]
         density = value / surface_dict[index] 
-        text = str(value) + " trees are planted in " + index + '. \n ---\nDensity: ' + str \
-            (int(density)) +        ' trees per km² - District\'s surface = ' + str(surface_dict[index]) + ' km²'
-        marker = folium.Circle(
-                    location=localisation, 
-                    radius=valu e /10,
-            fill=True,
-            popup=text
-        )
-        marker.add_to(m)
+        text = str(value) + " trees are planted in " + index + '. \n ---\nDensity: ' + str(int(density))\
+               + " trees per km² - District\'s surface = " + str(surface_dict[index]) + ' km²'
+        marker = folium.Circle(location=localisation,
+                               radius=value/10,
+                               fill=True,
+                               popup=text
+                               )
+        marker.add_to(paris_map)
 
-# Printing
-m
+paris_map.save("./resources/paris_map.html")
 
-"""
+
 ## Height, circumference and development stage scatterplot
 
 scatter = data.groupby(['stade_developpement', 'hauteur_m', 'circonference_cm'], dropna=True).size().reset_index()
@@ -257,7 +251,7 @@ h_c_stage_scatter_fig = px.scatter(scatter,
                                    color='stade_developpement',
                                    labels={'stade_developpement': "Development stage",
                                            'hauteur_m': "Height in meters",
-                                           'circonference_cm':"Circumference in centimeters"
+                                           'circonference_cm' :"Circumference in centimeters"
                                            },
                                    title="Height, circumference and development stage scatterplot"
                                    )
@@ -285,7 +279,7 @@ h_c_stage_fig = px.line(scatter,
                         title="Trees\' height and circumference and their development stage",
                         labels={'stade_developpement': "Development stage",
                                 'hauteur_m': "Height in meters",
-                                'circonference_cm':"Circumference in centimeters"
+                                'circonference_cm' :"Circumference in centimeters"
                                 }
                         )
 
@@ -293,16 +287,15 @@ h_c_stage_fig = px.line(scatter,
 
 sub = data.groupby(['stade_developpement'], dropna=True)['hauteur_m', 'circonference_cm'].mean().reset_index()
 # sub['hauteur_cm'] = sub['hauteur_m'] * 100
-print(sub)
 average_h_c_per_stage = px.line(sub,
                                 x='stade_developpement',
                                 y=['hauteur_m', 'circonference_cm'],
                                 title="Height and circumference average per development stage",
                                 labels={'stade_developpement': "Development stage",
                                         'hauteur_m': "Height in meters",
-                                        'circonference_cm':"Circumference in centimeters",
-                                        'value':'Value',
-                                        'variable':'Variable'
+                                        'circonference_cm' :"Circumference in centimeters",
+                                        'value' :'Value',
+                                        'variable' :'Variable'
                                         }
                                 )
 
@@ -317,7 +310,7 @@ dev_distrib_per_district = px.bar(height_circum_mean,
                                   title="Development stage distribution among districts",
                                   labels={'arrondissement': "Districts",
                                           'stade_developpement': "Development stage",
-                                          'count':"Number of trees"
+                                          'count' :"Number of trees"
                                           }
                                   )
 
@@ -329,8 +322,8 @@ height_mean_fig = px.bar(height_mean,
                          x='arrondissement',
                          y='hauteur_m',
                          title="Average height in m per district",
-                         labels={'arrondissement':"Districts",
-                                 'hauteur_m':"Average height in meters"
+                         labels={'arrondissement' :"Districts",
+                                 'hauteur_m' :"Average height in meters"
                                  }
                          )
 
@@ -343,8 +336,8 @@ circum_mean_fig = px.bar(circum_mean,
                          x='arrondissement',
                          y='circonference_cm',
                          title="Average circumference in cm per district",
-                         labels={'arrondissement':"Districts",
-                                 'circonference_cm':"Average circumference in centimeters"
+                         labels={'arrondissement' :"Districts",
+                                 'circonference_cm' :"Average circumference in centimeters"
                                  }
                          )
 
@@ -390,10 +383,28 @@ app.layout = html.Div(children=[
         id='height_boxplot_after',
         figure=height_boxplot_after
     ),
+
+    # Species distribution in Paris
+    dcc.Graph(
+        id='species_distrib_fig',
+        figure=species_distrib_fig
+    ),
+
     # under
 
     # above
 
+    # Paris map
+    html.Div(children='''
+    Trees\' density and number per district on the map
+    '''),
+
+    html.Iframe(
+        id='paris_map',
+        srcDoc=open("./resources/paris_map.html", 'r').read(),
+        width='100%',
+        height='500'
+    ),
 
     # Height, circumference and development stage scatterplot
     dcc.Graph(
