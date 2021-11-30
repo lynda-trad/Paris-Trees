@@ -222,7 +222,7 @@ h_c_stage_scatter_fig = px.scatter(scatter,
                                            },
                                    title="Height, circumference and development stage scatterplot"
                                    )
-
+"""
 ### Trees' height and circumference and their development stage
 
 h_c_stage_fig = px.line(scatter,
@@ -235,12 +235,12 @@ h_c_stage_fig = px.line(scatter,
                                 'circonference_cm': "Circumference in centimeters"
                                 }
                         )
-
+"""
 ### Height and circumference average per development stage
 
 sub = data.groupby(['stade_developpement'], dropna=True)['hauteur_m', 'circonference_cm'].mean().reset_index()
 # sub['hauteur_cm'] = sub['hauteur_m'] * 100
-average_h_c_per_stage = px.line(sub,
+average_h_c_per_stage = px.histogram(sub,
                                 x='stade_developpement',
                                 y=['hauteur_m', 'circonference_cm'],
                                 title="Height and circumference average per development stage",
@@ -365,13 +365,6 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='h_c_stage_scatter_fig',
         figure=h_c_stage_scatter_fig
-    ),
-
-    # Trees' height and circumference and their development stage
-    # NOT SURE
-    dcc.Graph(
-        id='h_c_stage_fig',
-        figure=h_c_stage_fig
     ),
 
     # Height and circumference average per development stage
