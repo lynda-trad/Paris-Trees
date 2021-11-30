@@ -190,8 +190,8 @@ numb_per_district = data.groupby(['arrondissement']).size()
 
 # Creating map
 paris_map = folium.Map(location=[48.856614, 2.3522219],
-                       width=500,
-                       height=500,
+                       width=800,
+                       height=800,
                        title="Trees\' density and number per district")
 
 # Placing markers for each district on the map
@@ -221,8 +221,8 @@ all_trees_map = px.scatter_mapbox(data,
                                   color_continuous_scale=px.colors.cyclical.IceFire,
                                   zoom=11,
                                   mapbox_style="open-street-map",
-                                  width=800,
-                                  height=800,
+                                  width=1000,
+                                  height=1000,
                                   title='Every tree on Paris\' map')
 """
 # Choroplet map
@@ -328,9 +328,14 @@ circum_mean_fig = px.bar(circum_mean,
                                  }
                          )
 
-### Domain distribution per district
+### Domain distribution in districts
 
-
+domain_district = data.groupby(['arrondissement', 'domanialite'], dropna=True).size().reset_index(name='count')
+print(domain_district)
+domain_treemap_fig = px.treemap(domain_district,
+                                path=['arrondissement', 'domanialite'],
+                                values='count',
+                                title='Domain distribution in districts')
 
 #########################################
 
@@ -367,7 +372,7 @@ app.layout = html.Div(children=[
 
     # Missing values in dataframe after cleanup
     dcc.Graph(
-        id='msno_after_fig',
+        id='msno_after',
         figure=msno_after_fig
     ),
 
@@ -379,13 +384,13 @@ app.layout = html.Div(children=[
 
     # Species distribution in Paris
     dcc.Graph(
-        id='species_distrib_fig',
+        id='species_distrib',
         figure=species_distrib_fig
     ),
 
     # Species distribution in each district
     dcc.Graph(
-        id='species_district_fig',
+        id='species_district',
         figure=species_district_fig
     ),
 
@@ -408,7 +413,7 @@ app.layout = html.Div(children=[
 
     # Height, circumference and development stage scatterplot
     dcc.Graph(
-        id='h_c_stage_scatter_fig',
+        id='h_c_stage_scatter',
         figure=h_c_stage_scatter_fig
     ),
 
@@ -434,6 +439,11 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='circum_mean',
         figure=circum_mean_fig
+    ),
+
+    dcc.Graph(
+        id='domain_treemap',
+        figure=domain_treemap_fig
     )
 
 ])
