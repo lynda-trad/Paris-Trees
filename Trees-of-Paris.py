@@ -67,8 +67,6 @@ def cleaningColumns(dataF):
 
 # Removing unwanted lines from data frame
 def cleaningRows(dataF):
-    dataF.drop(dataF.index[(dataF["circonference_cm"] <= 0)], axis=0, inplace=True)
-    dataF.drop(dataF.index[(dataF["hauteur_m"] <= 0)], axis=0, inplace=True)
     # biggest circumference paris tree 8m -> 800 cm
     dataF.drop(dataF.index[(dataF["circonference_cm"] > 900)], axis=0, inplace=True)
     # tallest paris tree 35 m -> 3500 cm
@@ -85,8 +83,8 @@ data = data.drop_duplicates()
 circum_median = data['circonference_cm'].median()
 height_median = data['hauteur_m'].median()
 
-data['circonference_cm'] = data['circonference_cm'].fillna(circum_median)
-data['hauteur_m'] = data['hauteur_m'].fillna(height_median)
+data['circonference_cm'] = data['circonference_cm'].replace(0, circum_median)
+data['hauteur_m'] = data['hauteur_m'].replace(0, height_median)
 
 msno_after_fig = px.imshow(data.isnull(), title="Missing values in database")
 
@@ -347,7 +345,6 @@ circum_height_mean_fig.update_layout(title_text="Average circumference and heigh
 ### Domain distribution in districts
 
 domain_district = data.groupby(['arrondissement', 'domanialite'], dropna=True).size().reset_index(name='count')
-print(domain_district)
 domain_treemap_fig = px.treemap(domain_district,
                                 path=['arrondissement', 'domanialite'],
                                 values='count',
@@ -360,11 +357,39 @@ app = dash.Dash(__name__)
 app.layout = html.Div(children=[
     html.H1(children='Trees of Paris'),
 
+    html.Div(children='''
+    We have a csv file in which a dataframe is filled with information about registered trees in Paris.
+    The objective of this data visualisation is to find a more effective way to maintain trees and save money and time while doing so.
+    '''),
+
+    html.Div(children='''
+    SUMMARY
+    '''),
+
+    html.Div(children='''
+    * Data cleanup 
+    * Circumference and height boxplot
+    * NaN values Heatmap
+    * Districts’ tree number and tree density on the map
+    * Species distribution among districts and in Paris
+    * Scatterplot : height and circumference per development stage
+    * Height and circumference per development stage
+    * Average height and circumference per district
+    * Development stage distribution among districts
+    * Treemap : domain distribution among districts
+    '''),
+
     # Boxplots before cleanup
     dcc.Graph(
         id='circum_boxplot_before',
         figure=boxplots_before
     ),
+
+    html.Div(children='''
+    With circumference and height boxplots, we find out ouliers : 
+    they are trees whose height or circumference are too far from the average tree. 
+    This way we can find an approximate maximum value for each column and remove outliers trees.
+    '''),
 
     # Missing values in dataframe before cleanup
     dcc.Graph(
@@ -392,11 +417,19 @@ app.layout = html.Div(children=[
         figure=msno_after_fig
     ),
 
+    html.Div(children='''
+    Thanks to the heatmap, we find out which columns are empty or are missing too many values for our work.
+    '''),
+
     # Boxplots after cleanup
     dcc.Graph(
         id='circum_boxplot_after',
         figure=boxplots_after
     ),
+
+    html.Div(children='''
+    After cleaning the data, we can notice the boxplots are shorter and the heatmap is more filled.
+    '''),
 
     # Species distribution in Paris
     dcc.Graph(
@@ -404,11 +437,21 @@ app.layout = html.Div(children=[
         figure=species_distrib_fig
     ),
 
+    html.Div(children='''
+    This graph shows which species appear the most in Paris.
+    '''),
+
     # Species distribution in each district
     dcc.Graph(
         id='species_district',
         figure=species_district_fig
     ),
+
+    html.Div(children='''
+    This shows the species distribution among districts. 
+    If a certain species have special requirement, we will calculate the budget needed to take care of it. 
+    It also helps if we want to make some districts more diverse or add more of a certain species.
+    '''),
 
     # Paris map
     html.Div(children='''
@@ -422,10 +465,21 @@ app.layout = html.Div(children=[
         height='500'
     ),
 
+    html.Div(children='''
+    This map shows the tree density of each district, with the tree total count. 
+    This way, we can choose to make the district greener by planting trees if there aren't enough, we can also choose 
+    where to employ the most people because some districts require more work than others.
+    '''),
+
+    # Every tree map
     dcc.Graph(
         id='all_trees_map',
         figure=all_trees_map
     ),
+
+    html.Div(children='''
+    We get a better picture of where trees are placed by showing every tree on Paris' map.
+    '''),
 
     # Height, circumference and development stage scatterplot
     dcc.Graph(
@@ -433,17 +487,37 @@ app.layout = html.Div(children=[
         figure=h_c_stage_scatter_fig
     ),
 
+    html.Div(children='''
+    The scatterplot shows every tree with their development stage, 
+    their height in meters and circumference in centimeters. 
+    This way we can find out strange values like a young tree whose circumference is at 800 centimeters ! 
+    We can also point out the correlation between age and size.
+    '''),
+
+
     # Height and circumference average per development stage
     dcc.Graph(
         id='average_h_c_per_stage',
         figure=average_h_c_per_stage
     ),
 
+    html.Div(children='''
+    This barplot shows the average circumference and height per development stage. 
+    This shows the correlation between size and age.
+    '''),
+
     # Development stage distribution among districts
     dcc.Graph(
         id='dev_distrib_per_district',
         figure=dev_distrib_per_district
     ),
+
+    html.Div(children='''
+    The stacked bars show the development stage distribution among districts. 
+    With this information, we can figure out the frequency of the maintenance since older 
+    or younger trees might need more or less work done on them compared to others.
+    '''),
+
 
     # Average height per district
     dcc.Graph(
@@ -463,12 +537,30 @@ app.layout = html.Div(children=[
         figure=circum_height_mean_fig
     ),
 
+    html.Div(children='''
+    The barplots show the average circumference and height for every district. 
+    This helps figure out which district will need workers to trim trees more often than others for example.
+    '''),
 
     dcc.Graph(
         id='domain_treemap',
         figure=domain_treemap_fig
-    )
+    ),
 
+    html.Div(children='''
+    This treemap shows the domain distribution in districts: this helps know when 
+    to use trucks to stop on the road and trim trees for example, which means more 
+    budget will be needed in the said district. It also shows which districts have the most trees.
+    '''),
+
+    html.Div(children='''
+    In conclusion : 
+    We found correlation between height, circumference and age, we also showed where the biggest trees are in order to help the direction find where to send the most employees to maintain trees.
+    We still need to add :
+    - pairplots.
+    - a choroplet map to show the tree density of each district in a way.
+    - buttons to make the figures more user-friendly and accessible.
+    '''),
 ])
 
 if __name__ == '__main__':
