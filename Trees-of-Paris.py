@@ -2,11 +2,9 @@
 
 import folium as folium
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import plotly.express as px
 from plotly.subplots import make_subplots
-import missingno as msno
+import plotly.graph_objects as go
 import dash
 from dash import dcc
 from dash import html
@@ -307,6 +305,7 @@ dev_distrib_per_district = px.bar(height_circum_mean,
 ### Average height per district
 
 height_mean = data.groupby(['arrondissement'])['hauteur_m'].mean().reset_index()
+height_mean['hauteur_cm'] = height_mean['hauteur_m'] * 100 # converting meters to centimeters
 height_mean_fig = px.bar(height_mean,
                          x='arrondissement',
                          y='hauteur_m',
@@ -327,6 +326,23 @@ circum_mean_fig = px.bar(circum_mean,
                                  'circonference_cm': "Average circumference in centimeters"
                                  }
                          )
+
+# Average circumference/height per district
+circum_height_mean_fig = go.Figure()
+circum_height_mean_fig.add_trace(go.Bar(name='Cicumference in centimeters',
+                                        x=circum_mean['arrondissement'],
+                                        y=circum_mean['circonference_cm']),
+                                 )
+
+circum_height_mean_fig.add_trace(go.Bar(name='Height in meters',
+                                        x=height_mean['arrondissement'],
+                                        y=height_mean['hauteur_m']),
+                                 )
+
+circum_height_mean_fig.update_traces(overwrite=True)
+circum_height_mean_fig.update_xaxes(title_text="Districts", showgrid=False)
+circum_height_mean_fig.update_yaxes(title_text="Average in centimeters/meters", showgrid=False)
+circum_height_mean_fig.update_layout(title_text="Average circumference and height per district")
 
 ### Domain distribution in districts
 
@@ -440,6 +456,13 @@ app.layout = html.Div(children=[
         id='circum_mean',
         figure=circum_mean_fig
     ),
+
+    # Average circumference/height per district
+    dcc.Graph(
+        id='circum_height_mean_fig',
+        figure=circum_height_mean_fig
+    ),
+
 
     dcc.Graph(
         id='domain_treemap',
