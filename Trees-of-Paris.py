@@ -191,8 +191,6 @@ numb_per_district = data.groupby(['arrondissement']).size()
 
 # Creating map
 paris_map = folium.Map(location=[48.856614, 2.3522219],
-                       width=800,
-                       height=800,
                        title="Trees\' density and number per district")
 
 # Placing markers for each district on the map
@@ -409,6 +407,7 @@ app.layout = html.Div(children=[
         id='data_first',
         columns=[{"name": i, "id": i} for i in data_first.columns],
         data=data_first.to_dict('records'),
+        page_size=10,
     ),
 
 
@@ -470,6 +469,7 @@ app.layout = html.Div(children=[
         id='dataframe',
         columns=[{"name": i, "id": i} for i in data.columns],
         data=data.to_dict('records'),
+        page_size=10,
     ),
 
     # Boxplots after cleanup
