@@ -6,13 +6,18 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import dash
+from dash import dash_table
 from dash import dcc
 from dash import html
+import warnings
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 ## Retrieving data from the csv file
 
 filename = "./resources/p2-arbres-fr.csv"
 data = pd.read_csv(filename, encoding='utf-8', sep=';')
+data_first = data
 
 
 # Useful values
@@ -158,8 +163,8 @@ surface_dict = {'BOIS DE BOULOGNE': 8.46,
                 'PARIS 10E ARRDT': 2.89,
                 'PARIS 11E ARRDT': 3.67,
                 'PARIS 12E ARRDT': 16.32,
-                'PARIS 13E ARRDT'	: 7.15,
-                'PARIS 14E ARRDT'	 : 5.64,
+                'PARIS 13E ARRDT': 7.15,
+                'PARIS 14E ARRDT'	: 5.64,
                 'PARIS 15E ARRDT'	 : 8.48,
                 'PARIS 16E ARRDT'	 : 7.91,
                 'PARIS 17E ARRDT'	 : 5.67,
@@ -355,16 +360,29 @@ domain_treemap_fig = px.treemap(domain_district,
 app = dash.Dash(__name__)
 
 app.layout = html.Div(children=[
-    html.H1(children='Trees of Paris'),
+    # Title
 
-    html.Div(children='''
-    We have a csv file in which a dataframe is filled with information about registered trees in Paris.
-    The objective of this data visualisation is to find a more effective way to maintain trees and save money and time while doing so.
-    '''),
+    html.H1(children='Trees of Paris',
+            style={
+                'textAlign': 'center'
+                }
+            ),
 
-    html.Div(children='''
-    SUMMARY
-    '''),
+    # Description
+
+    html.Div(children=
+             '''We have a csv file in which a dataframe is filled with information about registered trees in Paris.
+             The objective of this data visualisation is to find a more effective way to maintain trees 
+             and save money and time while doing so.''',
+             ),
+
+    # Summary
+
+    html.H1(children='''Summary''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
 
     html.Div(children='''
     * Data cleanup 
@@ -379,7 +397,29 @@ app.layout = html.Div(children=[
     * Treemap : domain distribution among districts
     '''),
 
+    # Data before cleanup
+
+    html.H1(children='''Dataframe before cleanup''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
+    dash_table.DataTable(
+        id='data_first',
+        columns=[{"name": i, "id": i} for i in data_first.columns],
+        data=data_first.to_dict('records'),
+    ),
+
+
     # Boxplots before cleanup
+
+    html.H1(children='''Boxplots before cleanup''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='circum_boxplot_before',
         figure=boxplots_before
@@ -392,6 +432,13 @@ app.layout = html.Div(children=[
     '''),
 
     # Missing values in dataframe before cleanup
+
+    html.H1(children='''Missing values in dataframe before cleanup''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='msno_before_fig',
         figure=msno_before_fig
@@ -411,17 +458,28 @@ app.layout = html.Div(children=[
     We finally replace the missing values in the circumference and height columns with their corresponding median.
     '''),
 
-    # Missing values in dataframe after cleanup
-    dcc.Graph(
-        id='msno_after',
-        figure=msno_after_fig
+    # Dataframe after cleanup
+
+    html.H1(children='''Dataframe after cleanup''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
+    dash_table.DataTable(
+        id='dataframe',
+        columns=[{"name": i, "id": i} for i in data.columns],
+        data=data.to_dict('records'),
     ),
 
-    html.Div(children='''
-    Thanks to the heatmap, we find out which columns are empty or are missing too many values for our work.
-    '''),
-
     # Boxplots after cleanup
+
+    html.H1(children='''Boxplots after cleanup''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='circum_boxplot_after',
         figure=boxplots_after
@@ -431,7 +489,31 @@ app.layout = html.Div(children=[
     After cleaning the data, we can notice the boxplots are shorter and the heatmap is more filled.
     '''),
 
+    # Missing values in dataframe after cleanup
+
+    html.H1(children='''Missing values in dataframe after cleanup''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
+    dcc.Graph(
+        id='msno_after',
+        figure=msno_after_fig
+    ),
+
+    html.Div(children='''
+    Thanks to the heatmap, we find out which columns are empty or are missing too many values for our work.
+    '''),
+
     # Species distribution in Paris
+
+    html.H1(children='''Species distribution in Paris''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='species_distrib',
         figure=species_distrib_fig
@@ -442,6 +524,13 @@ app.layout = html.Div(children=[
     '''),
 
     # Species distribution in each district
+
+    html.H1(children='''Species distribution in each district''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='species_district',
         figure=species_district_fig
@@ -454,9 +543,12 @@ app.layout = html.Div(children=[
     '''),
 
     # Paris map
-    html.Div(children='''
-    Trees\' density and number per district on the map
-    '''),
+
+    html.H1(children='''Trees\' density and number per district on the map''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
 
     html.Iframe(
         id='paris_map',
@@ -472,6 +564,13 @@ app.layout = html.Div(children=[
     '''),
 
     # Every tree map
+
+    html.H1(children='''Every tree and their district on Paris' map''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='all_trees_map',
         figure=all_trees_map
@@ -482,6 +581,13 @@ app.layout = html.Div(children=[
     '''),
 
     # Height, circumference and development stage scatterplot
+
+    html.H1(children='''Height, circumference and development stage scatterplot''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='h_c_stage_scatter',
         figure=h_c_stage_scatter_fig
@@ -494,8 +600,14 @@ app.layout = html.Div(children=[
     We can also point out the correlation between age and size.
     '''),
 
-
     # Height and circumference average per development stage
+
+    html.H1(children='''Height and circumference average per development stage''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='average_h_c_per_stage',
         figure=average_h_c_per_stage
@@ -507,6 +619,13 @@ app.layout = html.Div(children=[
     '''),
 
     # Development stage distribution among districts
+
+    html.H1(children='''Development stage distribution among districts''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='dev_distrib_per_district',
         figure=dev_distrib_per_district
@@ -518,29 +637,57 @@ app.layout = html.Div(children=[
     or younger trees might need more or less work done on them compared to others.
     '''),
 
+    # Average circumference/height per district
+
+    html.H1(children='''Average circumference/height per district''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
+    dcc.Graph(
+        id='circum_height_mean_fig',
+        figure=circum_height_mean_fig
+    ),
 
     # Average height per district
+
+    html.H1(children='''Average height per district''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='height_mean',
         figure=height_mean_fig
     ),
 
     # Average circumference per district
+
+    html.H1(children='''Average circumference per district''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     dcc.Graph(
         id='circum_mean',
         figure=circum_mean_fig
-    ),
-
-    # Average circumference/height per district
-    dcc.Graph(
-        id='circum_height_mean_fig',
-        figure=circum_height_mean_fig
     ),
 
     html.Div(children='''
     The barplots show the average circumference and height for every district. 
     This helps figure out which district will need workers to trim trees more often than others for example.
     '''),
+
+    # Domain distribution in districts
+
+    html.H1(children='''Domain distribution among districts''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
 
     dcc.Graph(
         id='domain_treemap',
@@ -553,8 +700,15 @@ app.layout = html.Div(children=[
     budget will be needed in the said district. It also shows which districts have the most trees.
     '''),
 
+    # Conclusion
+
+    html.H1(children='''Conclusion''',
+            style={
+                'textAlign': 'center'
+            }
+            ),
+
     html.Div(children='''
-    In conclusion : 
     We found correlation between height, circumference and age, we also showed where the biggest trees are in order to help the direction find where to send the most employees to maintain trees.
     We still need to add :
     - pairplots.
@@ -565,8 +719,3 @@ app.layout = html.Div(children=[
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-"""
-    
-    add above species distribution
-"""
