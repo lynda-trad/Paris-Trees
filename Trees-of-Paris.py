@@ -13,52 +13,48 @@ import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-## Retrieving data from the csv file
+# Colors dictionary for html
+colors = {
+    'background': '#111111',
+    'title': '#7FDBFF',
+    'text': '#a6a6a6',
+    'blue': '#000067'
+}
+
+# Retrieving data from the csv file
 
 filename = "./resources/p2-arbres-fr.csv"
 data = pd.read_csv(filename, encoding='utf-8', sep=';')
 data_first = data
 
-
 # Useful values
-
-# Returns tree number
-def getTreeNumber(dataF):
-    count = len(dataF)
-    print("Total number of trees:", count, '\n')
-    return count
-
-
-# Returns data frame columns
-def getColumns(dataF):
-    return dataF.columns.values
-
-
-# Prints data frame's columns
-def printColumns(col):
-    print(col)
-    print(len(col))
-
-
-columns = getColumns(data)
-row_count = getTreeNumber(data)
+tree_number = len(data)
 PARIS_LOCATION = (48.856614, 2.3522219)
 
 # Boxplots
 
 # Finding maximum circumference and height
 
-boxplots_before = px.box(data,
-                         y=['circonference_cm', 'hauteur_m'],
-                         labels={'circonference_cm': 'Circumference in centimeters',
-                                 'hauteur_m': 'Height in meters'
-                                 },
-                         title='Circumference and height boxplot before cleanup',
-                         log_y=True)
+boxplots_before_fig = px.box(data,
+                             y=['circonference_cm', 'hauteur_m'],
+                             labels={'circonference_cm': 'Circumference in centimeters',
+                                     'hauteur_m': 'Height in meters'
+                                     },
+                             title='Circumference and height boxplot before cleanup',
+                             log_y=True)
+
+boxplots_before_fig.update_layout(plot_bgcolor=colors['background'],
+                                  paper_bgcolor=colors['background'],
+                                  font_color=colors['text']
+                                  )
 
 # Showing how much data is missing on each column
 
-msno_before_fig = px.imshow(data.isnull(), title="Missing values in database")
+msno_before_fig = px.imshow(data.isnull(), title="Missing values in database", color_continuous_scale=["black", "white"])
+msno_before_fig.update_layout(plot_bgcolor=colors['background'],
+                              paper_bgcolor=colors['background'],
+                              font_color=colors['text']
+                              )
 
 
 # Data cleanup
@@ -91,18 +87,29 @@ height_median = data['hauteur_m'].median()
 data['circonference_cm'] = data['circonference_cm'].replace(0, circum_median)
 data['hauteur_m'] = data['hauteur_m'].replace(0, height_median)
 
-msno_after_fig = px.imshow(data.isnull(), title="Missing values in database")
+# Missing values heatmap after cleanup
+
+msno_after_fig = px.imshow(data.isnull(), title="Missing values in database", color_continuous_scale=["black", "white"])
+msno_after_fig.update_layout(plot_bgcolor=colors['background'],
+                             paper_bgcolor=colors['background'],
+                             font_color=colors['text']
+                             )
 
 # Boxplots after cleanup
 
-boxplots_after = px.box(data,
-                        y=['circonference_cm', 'hauteur_m'],
-                        labels={'circonference_cm': 'Circumference in centimeters',
-                                'hauteur_m': 'Height in meters'
-                                },
-                        title='Circumference and height boxplot after cleanup',
-                        width=500,
-                        log_y=True)
+boxplots_after_fig = px.box(data,
+                            y=['circonference_cm', 'hauteur_m'],
+                            labels={'circonference_cm': 'Circumference in centimeters',
+                                    'hauteur_m': 'Height in meters'
+                                    },
+                            title='Circumference and height boxplot after cleanup',
+                            width=500,
+                            log_y=True)
+
+boxplots_after_fig.update_layout(plot_bgcolor=colors['background'],
+                                 paper_bgcolor=colors['background'],
+                                 font_color=colors['text']
+                                 )
 
 # Species distribution in Paris
 
@@ -117,6 +124,11 @@ species_distrib_fig = px.histogram(species_group,
                                    height=700,
                                    width=1000
                                    )
+
+species_distrib_fig.update_layout(plot_bgcolor=colors['background'],
+                                  paper_bgcolor=colors['background'],
+                                  font_color=colors['text']
+                                  )
 
 # Species distribution in each district
 
@@ -137,6 +149,10 @@ species_district_fig = px.bar(species_district_df,
                               title="Species distribution in each district"
                               )
 
+species_district_fig.update_layout(plot_bgcolor=colors['background'],
+                                   paper_bgcolor=colors['background'],
+                                   font_color=colors['text']
+                                   )
 # Tree number percentage per district on the map
 
 # Districts' geolocalisation
@@ -154,7 +170,7 @@ for i in range(len(first_of_each_district_df)):
     coordinates = (loc_a_index, loc_b_index)
     district_geoloc[index] = coordinates
 
-#### District surface
+# District surface
 
 # Surface in km2
 surface_dict = {'BOIS DE BOULOGNE': 8.46,
@@ -184,7 +200,7 @@ surface_dict = {'BOIS DE BOULOGNE': 8.46,
                 'VAL-DE-MARNE'       : 245,
                 }
 
-### Drawing on map
+# Drawing on map
 
 # Tree number per district
 numb_per_district = data.groupby(['arrondissement']).size()
@@ -209,20 +225,26 @@ for index, value in numb_per_district.items():
 
 paris_map.save("./resources/paris_map.html")
 
-## Show all the trees on the map
+# Show all the trees on the map
 
-all_trees_map = px.scatter_mapbox(data,
-                                  lat="geo_point_2d_a",
-                                  lon="geo_point_2d_b",
-                                  color = 'arrondissement',
-                                  hover_name='arrondissement',
-                                  hover_data=['circonference_cm', 'hauteur_m', 'lieu'],
-                                  color_continuous_scale=px.colors.cyclical.IceFire,
-                                  zoom=11,
-                                  mapbox_style="open-street-map",
-                                  width=1000,
-                                  height=1000,
-                                  title='Every tree on Paris\' map')
+all_trees_map_fig = px.scatter_mapbox(data,
+                                      lat="geo_point_2d_a",
+                                      lon="geo_point_2d_b",
+                                      color = 'arrondissement',
+                                      hover_name='arrondissement',
+                                      hover_data=['circonference_cm', 'hauteur_m', 'lieu'],
+                                      color_continuous_scale=px.colors.cyclical.IceFire,
+                                      zoom=11,
+                                      mapbox_style="open-street-map",
+                                      width=1000,
+                                      height=1000,
+                                      title='Every tree on Paris\' map'
+                                      )
+
+all_trees_map_fig.update_layout(plot_bgcolor=colors['background'],
+                                paper_bgcolor=colors['background'],
+                                font_color=colors['text']
+                                )
 """
 # Choroplet map
 
@@ -240,7 +262,7 @@ choro_map = px.choropleth_mapbox(data,
 choro_map.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 choro_map.show()
 """
-## Height, circumference and development stage scatterplot
+# Height, circumference and development stage scatterplot
 
 scatter = data.groupby(['stade_developpement', 'hauteur_m', 'circonference_cm'], dropna=True).size().reset_index()
 
@@ -255,6 +277,12 @@ h_c_stage_scatter_fig = px.scatter(scatter,
                                    title="Height, circumference and development stage scatterplot",
                                    height=800
                                    )
+
+h_c_stage_scatter_fig.update_layout(plot_bgcolor=colors['background'],
+                                    paper_bgcolor=colors['background'],
+                                    font_color=colors['text']
+                                    )
+
 """
 ### Trees' height and circumference and their development stage
 
@@ -269,41 +297,55 @@ h_c_stage_fig = px.line(scatter,
                                 }
                         )
 """
-### Height and circumference average per development stage
+# Height and circumference average per development stage
 
 sub = data.groupby(['stade_developpement'], dropna=True)['hauteur_m', 'circonference_cm'].mean().reset_index()
-# sub['hauteur_cm'] = sub['hauteur_m'] * 100
-average_h_c_per_stage = px.histogram(sub,
-                                     x='stade_developpement',
-                                     y=['hauteur_m', 'circonference_cm'],
-                                     title="Height and circumference average per development stage",
-                                     labels={'stade_developpement': "Development stage",
-                                             'hauteur_m': "Height in meters",
-                                             'circonference_cm': "Circumference in centimeters",
-                                             'value': 'Value',
-                                             'variable': 'Variable'
-                                             },
-                                     width=900,
-                                     height=700
-                                     )
+circum_mean_per_stage = data.groupby(['stade_developpement'], dropna=True)['circonference_cm'].mean().reset_index()
+height_mean_per_stage = data.groupby(['stade_developpement'], dropna=True)['hauteur_m'].mean().reset_index()
+# height_mean_per_stage['hauteur_cm'] = height_mean_per_stage['hauteur_m'] * 100
 
-### Development stage distribution among districts
+average_h_c_per_stage_fig = go.Figure()
+average_h_c_per_stage_fig.add_trace(go.Bar(name='Cicumference in centimeters',
+                                           x=circum_mean_per_stage['stade_developpement'],
+                                           y=circum_mean_per_stage['circonference_m']),
+                                    )
+
+average_h_c_per_stage_fig.add_trace(go.Bar(name='Height in meters',
+                                           x=height_mean_per_stage['stade_developpement'],
+                                           y=height_mean_per_stage['hauteur_cm']),
+                                    )
+
+average_h_c_per_stage_fig.update_traces(overwrite=True)
+average_h_c_per_stage_fig.update_xaxes(title_text="Development stage", showgrid=False)
+average_h_c_per_stage_fig.update_yaxes(title_text="Average in meters/centimeters", showgrid=False)
+average_h_c_per_stage_fig.update_layout(title_text="Height and circumference average per development stage",
+                                        plot_bgcolor=colors['background'],
+                                        paper_bgcolor=colors['background'],
+                                        font_color=colors['text']
+                                        )
+
+# Development stage distribution among districts
 
 height_circum_mean = data.groupby(['arrondissement', 'stade_developpement']).size().reset_index(name="count")
-dev_distrib_per_district = px.bar(height_circum_mean,
-                                  x="count",
-                                  y="arrondissement",
-                                  color='stade_developpement',
-                                  orientation='h',
-                                  title="Development stage distribution among districts",
-                                  labels={'arrondissement': "Districts",
+dev_distrib_per_district_fig = px.bar(height_circum_mean,
+                                      x="count",
+                                      y="arrondissement",
+                                      color='stade_developpement',
+                                      orientation='h',
+                                      title="Development stage distribution among districts",
+                                      labels={'arrondissement': "Districts",
                                           'stade_developpement': "Development stage",
                                           'count': "Number of trees"
                                           },
-                                  height=800
-                                  )
+                                      height=800
+                                      )
 
-### Average height per district
+dev_distrib_per_district_fig.update_layout(plot_bgcolor=colors['background'],
+                                           paper_bgcolor=colors['background'],
+                                           font_color=colors['text']
+                                           )
+
+# Average height per district
 
 height_mean = data.groupby(['arrondissement'])['hauteur_m'].mean().reset_index()
 height_mean['hauteur_cm'] = height_mean['hauteur_m'] * 100 # converting meters to centimeters
@@ -316,7 +358,12 @@ height_mean_fig = px.bar(height_mean,
                                  }
                          )
 
-### Average circumference per district
+height_mean_fig.update_layout(plot_bgcolor=colors['background'],
+                              paper_bgcolor=colors['background'],
+                              font_color=colors['text']
+                              )
+
+# Average circumference per district
 
 circum_mean = data.groupby(['arrondissement'])['circonference_cm'].mean().reset_index()
 circum_mean_fig = px.bar(circum_mean,
@@ -327,6 +374,11 @@ circum_mean_fig = px.bar(circum_mean,
                                  'circonference_cm': "Average circumference in centimeters"
                                  }
                          )
+
+circum_mean_fig.update_layout(plot_bgcolor=colors['background'],
+                              paper_bgcolor=colors['background'],
+                              font_color=colors['text']
+                              )
 
 # Average circumference/height per district
 circum_height_mean_fig = go.Figure()
@@ -343,9 +395,12 @@ circum_height_mean_fig.add_trace(go.Bar(name='Height in meters',
 circum_height_mean_fig.update_traces(overwrite=True)
 circum_height_mean_fig.update_xaxes(title_text="Districts", showgrid=False)
 circum_height_mean_fig.update_yaxes(title_text="Average in centimeters/meters", showgrid=False)
-circum_height_mean_fig.update_layout(title_text="Average circumference and height per district")
-
-### Domain distribution in districts
+circum_height_mean_fig.update_layout(title_text="Average circumference and height per district",
+                                     plot_bgcolor=colors['background'],
+                                     paper_bgcolor=colors['background'],
+                                     font_color=colors['text']
+                                     )
+# Domain distribution in districts
 
 domain_district = data.groupby(['arrondissement', 'domanialite'], dropna=True).size().reset_index(name='count')
 domain_treemap_fig = px.treemap(domain_district,
@@ -353,16 +408,25 @@ domain_treemap_fig = px.treemap(domain_district,
                                 values='count',
                                 title='Domain distribution in districts')
 
-#########################################
+domain_treemap_fig.update_layout(plot_bgcolor=colors['background'],
+                                 paper_bgcolor=colors['background'],
+                                 font_color=colors['text']
+                                 )
 
+#########################################
+# Html
 app = dash.Dash(__name__)
 
-app.layout = html.Div(children=[
+# Layout
+
+app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     # Title
 
     html.H1(children='Trees of Paris',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'underline'
                 }
             ),
 
@@ -372,18 +436,21 @@ app.layout = html.Div(children=[
              '''We have a csv file in which a dataframe is filled with information about registered trees in Paris.
              The objective of this data visualisation is to find a more effective way to maintain trees 
              and save money and time while doing so.''',
+             style={'color': colors['text']}
              ),
 
     # Summary
 
     html.H1(children='''Summary''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
     html.Div(children='''
-    * Data cleanup 
+    * Data cleanup
     * Circumference and height boxplot
     * NaN values Heatmap
     * Districts’ tree number and tree density on the map
@@ -393,13 +460,16 @@ app.layout = html.Div(children=[
     * Average height and circumference per district
     * Development stage distribution among districts
     * Treemap : domain distribution among districts
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Data before cleanup
 
     html.H1(children='''Dataframe before cleanup''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -408,6 +478,14 @@ app.layout = html.Div(children=[
         columns=[{"name": i, "id": i} for i in data_first.columns],
         data=data_first.to_dict('records'),
         page_size=10,
+        style_header={
+            'backgroundColor': colors['background'],
+            'color': colors['title']
+        },
+        style_data={
+            'backgroundColor': colors['background'],
+            'color': colors['text']
+        },
     ),
 
 
@@ -415,26 +493,31 @@ app.layout = html.Div(children=[
 
     html.H1(children='''Boxplots before cleanup''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
     dcc.Graph(
         id='circum_boxplot_before',
-        figure=boxplots_before
+        figure=boxplots_before_fig
     ),
 
     html.Div(children='''
     With circumference and height boxplots, we find out ouliers : 
     they are trees whose height or circumference are too far from the average tree. 
     This way we can find an approximate maximum value for each column and remove outliers trees.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Missing values in dataframe before cleanup
 
     html.H1(children='''Missing values in dataframe before cleanup''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -446,22 +529,27 @@ app.layout = html.Div(children=[
     html.Div(children='''
     We remove columns we won't be using for our study, either because they aren't useful or 
     because they aren't filled with enough data.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     html.Div(children='''
     We also remove lines that weren't filled correctly, for example if the tree circumference or 
     height is equal to 0, or if the tree is taller or wider than the biggest tree known in Paris.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     html.Div(children='''
     We finally replace the missing values in the circumference and height columns with their corresponding median.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Dataframe after cleanup
 
     html.H1(children='''Dataframe after cleanup''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -470,30 +558,43 @@ app.layout = html.Div(children=[
         columns=[{"name": i, "id": i} for i in data.columns],
         data=data.to_dict('records'),
         page_size=10,
+        style_header={
+            'backgroundColor': colors['background'],
+            'color': colors['title']
+        },
+        style_data={
+            'backgroundColor': colors['background'],
+            'color': colors['text']
+        },
     ),
 
     # Boxplots after cleanup
 
     html.H1(children='''Boxplots after cleanup''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
     dcc.Graph(
         id='circum_boxplot_after',
-        figure=boxplots_after
+        figure=boxplots_after_fig
     ),
 
     html.Div(children='''
     After cleaning the data, we can notice the boxplots are shorter and the heatmap is more filled.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Missing values in dataframe after cleanup
 
     html.H1(children='''Missing values in dataframe after cleanup''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -504,13 +605,16 @@ app.layout = html.Div(children=[
 
     html.Div(children='''
     Thanks to the heatmap, we find out which columns are empty or are missing too many values for our work.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Species distribution in Paris
 
     html.H1(children='''Species distribution in Paris''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -521,13 +625,16 @@ app.layout = html.Div(children=[
 
     html.Div(children='''
     This graph shows which species appear the most in Paris.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Species distribution in each district
 
     html.H1(children='''Species distribution in each district''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -540,13 +647,16 @@ app.layout = html.Div(children=[
     This shows the species distribution among districts. 
     If a certain species have special requirement, we will calculate the budget needed to take care of it. 
     It also helps if we want to make some districts more diverse or add more of a certain species.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Paris map
 
     html.H1(children='''Trees\' density and number per district on the map''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -561,30 +671,36 @@ app.layout = html.Div(children=[
     This map shows the tree density of each district, with the tree total count. 
     This way, we can choose to make the district greener by planting trees if there aren't enough, we can also choose 
     where to employ the most people because some districts require more work than others.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Every tree map
 
     html.H1(children='''Every tree and their district on Paris' map''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
     dcc.Graph(
         id='all_trees_map',
-        figure=all_trees_map
+        figure=all_trees_map_fig
     ),
 
     html.Div(children='''
     We get a better picture of where trees are placed by showing every tree on Paris' map.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Height, circumference and development stage scatterplot
 
     html.H1(children='''Height, circumference and development stage scatterplot''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -598,50 +714,59 @@ app.layout = html.Div(children=[
     their height in meters and circumference in centimeters. 
     This way we can find out strange values like a young tree whose circumference is at 800 centimeters ! 
     We can also point out the correlation between age and size.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
-    # Height and circumference average per development stage
+    # Average height and circumference per development stage
 
-    html.H1(children='''Height and circumference average per development stage''',
+    html.H1(children='''Average height and circumference per development stage''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
     dcc.Graph(
-        id='average_h_c_per_stage',
-        figure=average_h_c_per_stage
+        id='average_h_c_per_stage_fig_next',
+        figure=average_h_c_per_stage_fig
     ),
 
     html.Div(children='''
     This barplot shows the average circumference and height per development stage. 
     This shows the correlation between size and age.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Development stage distribution among districts
 
     html.H1(children='''Development stage distribution among districts''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
     dcc.Graph(
         id='dev_distrib_per_district',
-        figure=dev_distrib_per_district
+        figure=dev_distrib_per_district_fig
     ),
 
     html.Div(children='''
     The stacked bars show the development stage distribution among districts. 
     With this information, we can figure out the frequency of the maintenance since older 
     or younger trees might need more or less work done on them compared to others.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Average circumference/height per district
 
     html.H1(children='''Average circumference/height per district''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -654,7 +779,9 @@ app.layout = html.Div(children=[
 
     html.H1(children='''Average height per district''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -667,7 +794,9 @@ app.layout = html.Div(children=[
 
     html.H1(children='''Average circumference per district''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -679,13 +808,16 @@ app.layout = html.Div(children=[
     html.Div(children='''
     The barplots show the average circumference and height for every district. 
     This helps figure out which district will need workers to trim trees more often than others for example.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Domain distribution in districts
 
     html.H1(children='''Domain distribution among districts''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -698,13 +830,16 @@ app.layout = html.Div(children=[
     This treemap shows the domain distribution in districts: this helps know when 
     to use trucks to stop on the road and trim trees for example, which means more 
     budget will be needed in the said district. It also shows which districts have the most trees.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 
     # Conclusion
 
     html.H1(children='''Conclusion''',
             style={
-                'textAlign': 'center'
+                'textAlign': 'center',
+                'color': colors['title'],
+                'font-weight': 'bold'
             }
             ),
 
@@ -714,7 +849,8 @@ app.layout = html.Div(children=[
     - pairplots.
     - a choroplet map to show the tree density of each district in a way.
     - buttons to make the figures more user-friendly and accessible.
-    '''),
+    ''',
+             style={'color': colors['text']}),
 ])
 
 if __name__ == '__main__':
